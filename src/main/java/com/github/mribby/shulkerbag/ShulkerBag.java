@@ -7,6 +7,7 @@ import net.minecraft.client.gui.screen.ingame.AbstractContainerScreen;
 import net.minecraft.client.gui.screen.ingame.ShulkerBoxScreen;
 import net.minecraft.container.Container;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.inventory.Inventory;
 import net.minecraft.item.*;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.network.ServerPlayerEntity;
@@ -21,8 +22,6 @@ public class ShulkerBag implements ModInitializer {
 	public void onInitialize() {
 
 		// TODO: dyed shulker bags
-
-		// TODO: keep inventory contents of shulker box
 
 		// TODO: automatically close the inventory if the bag item is not equipped in the player's hand(s) anymore
 
@@ -39,21 +38,23 @@ public class ShulkerBag implements ModInitializer {
 
 	private static Container createContainer(int syncId, Identifier identifier, PlayerEntity player, PacketByteBuf buf) {
 		Hand hand = buf.readEnumConstant(Hand.class);
-
 		ItemStack stack = player.getStackInHand(hand);
-
 		ShulkerBagInventory inventory = new ShulkerBagInventory(27);
-
-		CompoundTag tag = stack.getSubCompoundTag("BlockEntityTag");
-		if (tag != null && tag.containsKey("Items", 9)) {
-			ShulkerBagInventory.fromTag(tag, inventory);
-		}
-
+		deserializeInventory(inventory, stack.getSubCompoundTag("BlockEntityTag"));
 		// TODO: maybe this is too slow so maybe write to the item stack only when the container is closed
-		inventory.addListener(inv -> ShulkerBagInventory.toTag(stack.getOrCreateSubCompoundTag("BlockEntityTag"), inventory, true)); // pass true to overwrite existing Items tag including when the inventory is empty
-
+		inventory.addListener(inv -> serializeInventory(inv, stack.getOrCreateSubCompoundTag("BlockEntityTag")));
 		return new ShulkerBagContainer(syncId, player.inventory, inventory, stack.getDisplayName(), stack);
 	}
+
+    private static void serializeInventory(Inventory inventory, CompoundTag compoundTag) {
+        ShulkerBagInventory.toTag(compoundTag, inventory, true); // pass true to overwrite existing Items tag including when the inventory is empty
+    }
+
+    private static void deserializeInventory(Inventory inventory, CompoundTag compoundTag) {
+        if (compoundTag != null && compoundTag.containsKey("Items", 9)) {
+            ShulkerBagInventory.fromTag(compoundTag, inventory);
+        }
+    }
 
 	private static AbstractContainerScreen createScreen(ShulkerBagContainer container) {
 		return new ShulkerBoxScreen(container, container.playerInventory, container.bagName);
