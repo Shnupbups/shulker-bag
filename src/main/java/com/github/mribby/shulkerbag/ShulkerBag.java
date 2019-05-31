@@ -26,7 +26,6 @@ public class ShulkerBag implements ModInitializer {
 		// TODO: automatically close the inventory if the bag item is not equipped in the player's hand(s) anymore
 
 		ContainerProviderRegistry.INSTANCE.registerFactory(BAG_ID, ShulkerBag::createContainer);
-		ScreenProviderRegistry.INSTANCE.registerFactory(BAG_ID, ShulkerBag::createScreen);
 		Registry.register(Registry.ITEM, BAG_ID, new ShulkerBagItem());
 	}
 
@@ -51,12 +50,8 @@ public class ShulkerBag implements ModInitializer {
     }
 
     private static void deserializeInventory(Inventory inventory, CompoundTag compoundTag) {
-        if (compoundTag != null && compoundTag.containsKey("Items", 9)) {
-            ShulkerBagInventory.fromTag(compoundTag, inventory);
-        }
-    }
-
-	private static AbstractContainerScreen createScreen(ShulkerBagContainer container) {
-		return new ShulkerBoxScreen(container, container.playerInventory, container.bagName);
+		if (compoundTag != null && compoundTag.containsKey("Items", 9)) {
+			ShulkerBagInventory.fromTag(compoundTag, inventory);
+		}
 	}
 }
